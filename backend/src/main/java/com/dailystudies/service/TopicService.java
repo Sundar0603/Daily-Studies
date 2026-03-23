@@ -31,7 +31,6 @@ public class TopicService {
             long daysMissed = ChronoUnit.DAYS.between(topic.getLastUpdatedDate(), today);
             if (daysMissed > 0) {
                 topic.setCount(topic.getCount() + (int) daysMissed);
-                topic.setLastUpdatedDate(today);
             }
         }
 

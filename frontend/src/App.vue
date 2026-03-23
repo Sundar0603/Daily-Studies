@@ -137,7 +137,12 @@ export default {
   computed: {
     highestTopic() {
       if (!this.topics.length) return null
-      return this.topics.reduce((a, b) => (b.count > a.count ? b : a)).topic
+      return this.topics.reduce((a, b) => {
+        if(a.count === b.count) {
+          return new Date(b.lastUpdatedDate).getTime() > new Date(a.lastUpdatedDate).getTime() ? b : a
+        }
+        return b.count > a.count ? b : a
+      }).topic
     },
   },
 
@@ -361,7 +366,7 @@ body {
 /* ─── Single pill ────────────────────────────────────────────────────────── */
 .pill {
   position: relative;
-  /* Glass-morphism: night sky and shooting stars show through */
+      /* Glass-morphism: night sky and shooting stars show through */
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -548,7 +553,10 @@ body {
 .slide-fade-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.slide-fade-enter-from,
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
