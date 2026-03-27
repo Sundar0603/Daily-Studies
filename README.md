@@ -64,7 +64,7 @@ The topic with the highest count will display its image as a background with a g
 ```bash
 cd backend
 mvn spring-boot:run
-# Server starts on http://localhost:8080
+# Server starts on http://localhost:8086
 ```
 
 **Terminal 2 — frontend:**
