@@ -31,6 +31,7 @@ public class TopicService {
             long daysMissed = ChronoUnit.DAYS.between(topic.getLastUpdatedDate(), today);
             if (daysMissed > 0) {
                 topic.setCount(topic.getCount() + (int) daysMissed);
+                topic.setLastUpdatedDate(today);
             }
         }
 
@@ -50,6 +51,21 @@ public class TopicService {
         return topicRepository.save(topic);
     }
 
+    public Topic updateTopic(String topicName, int count) {
+        Topic topic = topicRepository.findById(topicName)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicName));
+        topic.setCount(count);
+        topic.setLastUpdatedDate(LocalDate.now());
+        return topicRepository.save(topic);
+    }
+
+    public Topic updateTopic(String topicName, String itemToStudyNext) {
+        Topic topic = topicRepository.findById(topicName)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicName));
+        topic.setItemToStudyNext(itemToStudyNext);
+        return topicRepository.save(topic);
+    }
+
     public Topic addTopic(String topicName) {
         if (topicRepository.existsById(topicName)) {
             throw new IllegalArgumentException("Topic already exists: " + topicName);
@@ -59,5 +75,10 @@ public class TopicService {
 
     public void removeTopic(String topicName) {
         topicRepository.deleteById(topicName);
+    }
+
+    public Topic getTopicByName(String topicName) {
+        return topicRepository.findById(topicName)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicName));
     }
 }

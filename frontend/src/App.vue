@@ -22,8 +22,8 @@
         v-for="t in topics"
         :key="t.topic"
         class="pill"
-        :class="{ 'pill--highlight': t.topic === highestTopic }"
-        :style="t.topic === highestTopic ? highlightStyle(t.topic) : {}"
+        :class="{ 'pill--highlight': t.topic === latestTopic }"
+        :style="t.topic === latestTopic ? highlightStyle(t.topic) : {}"
       >
         <!-- Remove button (view mode only, small × in corner) -->
         <button
@@ -31,7 +31,9 @@
           class="pill__remove"
           @click="confirmRemove(t.topic)"
           title="Remove topic"
-        >×</button>
+        >
+          ×
+        </button>
 
         <div class="pill__inner">
           <!-- Topic name + count -->
@@ -103,7 +105,7 @@ export default {
     return {
       topics: [],
       editMode: false,
-      localState: {},   // { [topicName]: { count, itemToStudyNext } }
+      localState: {}, // { [topicName]: { count, itemToStudyNext } }
       saving: false,
       showAdd: false,
       newTopicName: '',
@@ -111,23 +113,23 @@ export default {
       // Map each topic to a highlight image in frontend/public/images/.
       // Add your own image files with matching names.
       topicImages: {
-        'Technical':     '/images/technical.jpg',
+        Technical: '/images/technical.jpg',
         'Non-Technical': '/images/non-technical.jpg',
-        'Investments':   '/images/investments.jpg',
-        'Security':      '/images/security.jpg',
-        'AI':            '/images/ai.jpg',
-        'Stocks':        '/images/stocks.jpg',
+        Investments: '/images/investments.jpg',
+        Security: '/images/security.jpg',
+        AI: '/images/ai.jpg',
+        Stocks: '/images/stocks.jpg',
       },
 
       // 70 twinkle dots. Positions computed once in data so the list is stable.
       twinkleDots: Array.from({ length: 70 }, (_, i) => ({
         id: i,
         style: {
-          left:              `${((i * 137.508) % 100).toFixed(2)}%`,
-          top:               `${((i * 73.917) % 100).toFixed(2)}%`,
-          width:             `${1 + (i % 3)}px`,
-          height:            `${1 + (i % 3)}px`,
-          animationDelay:    `${((i * 0.41) % 5).toFixed(2)}s`,
+          left: `${((i * 137.508) % 100).toFixed(2)}%`,
+          top: `${((i * 73.917) % 100).toFixed(2)}%`,
+          width: `${1 + (i % 3)}px`,
+          height: `${1 + (i % 3)}px`,
+          animationDelay: `${((i * 0.41) % 5).toFixed(2)}s`,
           animationDuration: `${(2 + (i % 4)).toFixed(1)}s`,
         },
       })),
@@ -135,11 +137,13 @@ export default {
   },
 
   computed: {
-    highestTopic() {
+    latestTopic() {
       if (!this.topics.length) return null
       return this.topics.reduce((a, b) => {
-        if(a.count === b.count) {
-          return new Date(b.lastUpdatedDate).getTime() > new Date(a.lastUpdatedDate).getTime() ? b : a
+        if (a.count === b.count) {
+          return new Date(b.lastUpdatedDate).getTime() > new Date(a.lastUpdatedDate).getTime()
+            ? b
+            : a
         }
         return b.count > a.count ? b : a
       }).topic
@@ -158,10 +162,15 @@ export default {
 
     startEdit() {
       this.localState = Object.fromEntries(
-        this.topics.map(t => [
+        this.topics.map((t) => [
           t.topic,
-          { count: t.count, itemToStudyNext: t.itemToStudyNext ?? '' },
-        ])
+          {
+            count: t.count,
+            itemToStudyNext: t.itemToStudyNext ?? '',
+            initialCount: t.count,
+            itemToStudyNextInitial: t.itemToStudyNext ?? '',
+          },
+        ]),
       )
       this.editMode = true
     },
@@ -180,8 +189,9 @@ export default {
       this.saving = true
       try {
         const responses = await Promise.all(
-          this.topics.map(t => {
+          this.topics.map((t) => {
             const s = this.localState[t.topic]
+            if (!this.isTopicChanged(t.topic)) return Promise.resolve()
             return fetch(`/api/topics/${encodeURIComponent(t.topic)}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -190,9 +200,9 @@ export default {
                 itemToStudyNext: s.itemToStudyNext || null,
               }),
             })
-          })
+          }),
         )
-        if (responses.some(r => !r.ok)) {
+        if (responses.some((r) => r && !r.ok)) {
           alert('One or more topics failed to save. Please try again.')
           return
         }
@@ -239,20 +249,30 @@ export default {
         boxShadow: '0 0 32px rgba(240, 192, 64, 0.55)',
       }
     },
+    isTopicChanged(topicName) {
+      const s = this.localState[topicName]
+      return s.count !== s.initialCount || s.itemToStudyNext !== s.itemToStudyNextInitial
+    },
   },
 }
 </script>
 
 <style lang="scss">
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
   background: #050510;
   -webkit-font-smoothing: antialiased;
 }
@@ -273,8 +293,15 @@ body {
 
 /* ─── Twinkle star dots ──────────────────────────────────────────────────── */
 @keyframes twinkle {
-  0%, 100% { opacity: 0.12; transform: scale(1); }
-  50%       { opacity: 1;    transform: scale(1.4); }
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
 }
 
 .twinkle-dot {
@@ -325,12 +352,42 @@ body {
   pointer-events: none;
   z-index: 2;
 
-  &.ss-1 { top:  6%; left: 12%; animation-duration: 4.0s; animation-delay: 0.0s; }
-  &.ss-2 { top:  3%; left: 58%; animation-duration: 3.5s; animation-delay: 2.1s; }
-  &.ss-3 { top: 18%; left:  8%; animation-duration: 4.8s; animation-delay: 4.4s; }
-  &.ss-4 { top:  1%; left: 38%; animation-duration: 3.8s; animation-delay: 1.2s; }
-  &.ss-5 { top: 10%; left: 75%; animation-duration: 5.2s; animation-delay: 3.6s; }
-  &.ss-6 { top: 22%; left: 45%; animation-duration: 4.2s; animation-delay: 6.0s; }
+  &.ss-1 {
+    top: 6%;
+    left: 12%;
+    animation-duration: 4s;
+    animation-delay: 0s;
+  }
+  &.ss-2 {
+    top: 3%;
+    left: 58%;
+    animation-duration: 3.5s;
+    animation-delay: 2.1s;
+  }
+  &.ss-3 {
+    top: 18%;
+    left: 8%;
+    animation-duration: 4.8s;
+    animation-delay: 4.4s;
+  }
+  &.ss-4 {
+    top: 1%;
+    left: 38%;
+    animation-duration: 3.8s;
+    animation-delay: 1.2s;
+  }
+  &.ss-5 {
+    top: 10%;
+    left: 75%;
+    animation-duration: 5.2s;
+    animation-delay: 3.6s;
+  }
+  &.ss-6 {
+    top: 22%;
+    left: 45%;
+    animation-duration: 4.2s;
+    animation-delay: 6s;
+  }
 }
 
 /* ─── Title ──────────────────────────────────────────────────────────────── */
@@ -366,7 +423,7 @@ body {
 /* ─── Single pill ────────────────────────────────────────────────────────── */
 .pill {
   position: relative;
-      /* Glass-morphism: night sky and shooting stars show through */
+  /* Glass-morphism: night sky and shooting stars show through */
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -375,7 +432,9 @@ body {
   padding: 1.4rem 1.6rem;
   min-width: 175px;
   color: #fff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-4px);
@@ -400,7 +459,9 @@ body {
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 4px;
-    transition: color 0.15s, background 0.15s;
+    transition:
+      color 0.15s,
+      background 0.15s;
 
     &:hover {
       color: #ff6b6b;
@@ -455,8 +516,12 @@ body {
     outline: none;
     transition: border-color 0.15s;
 
-    &::placeholder { color: rgba(255, 255, 255, 0.3); }
-    &:focus        { border-color: rgba(255, 255, 255, 0.45); }
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.45);
+    }
   }
 
   &__controls {
@@ -479,8 +544,12 @@ body {
   cursor: pointer;
   transition: background 0.15s;
 
-  &:hover  { background: rgba(255, 255, 255, 0.2); }
-  &:active { background: rgba(255, 255, 255, 0.28); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  &:active {
+    background: rgba(255, 255, 255, 0.28);
+  }
 }
 
 /* ─── Action bar ─────────────────────────────────────────────────────────── */
@@ -500,28 +569,42 @@ body {
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: transform 0.12s, opacity 0.12s, background 0.15s;
+  transition:
+    transform 0.12s,
+    opacity 0.12s,
+    background 0.15s;
 
-  &:active  { transform: scale(0.96); }
-  &:disabled { opacity: 0.55; cursor: default; }
+  &:active {
+    transform: scale(0.96);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
 
   &--primary {
     background: #4a8fe2;
     color: #fff;
-    &:hover:not(:disabled) { background: #5fa3f5; }
+    &:hover:not(:disabled) {
+      background: #5fa3f5;
+    }
   }
 
   &--success {
     background: #3ab06a;
     color: #fff;
-    &:hover:not(:disabled) { background: #4dc97c; }
+    &:hover:not(:disabled) {
+      background: #4dc97c;
+    }
   }
 
   &--ghost {
     background: rgba(255, 255, 255, 0.07);
     color: rgba(255, 255, 255, 0.78);
     border: 1px solid rgba(255, 255, 255, 0.16);
-    &:hover { background: rgba(255, 255, 255, 0.14); }
+    &:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
   }
 }
 
@@ -543,15 +626,21 @@ body {
     min-width: 200px;
     transition: border-color 0.15s;
 
-    &::placeholder { color: rgba(255, 255, 255, 0.32); }
-    &:focus        { border-color: rgba(255, 255, 255, 0.48); }
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.32);
+    }
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.48);
+    }
   }
 }
 
 /* ─── Slide-fade transition for add form ────────────────────────────────── */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 .slide-fade-enter-from {
   opacity: 0;

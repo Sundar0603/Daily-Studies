@@ -28,7 +28,14 @@ public class TopicController {
     public Topic updateTopic(
             @PathVariable String topic,
             @RequestBody UpdateRequest body) {
-        return topicService.updateTopic(topic, body.count(), body.itemToStudyNext());
+        Topic selectedTopic = topicService.getTopicByName(topic);
+        if (body.count() == selectedTopic.getCount()) {
+            return topicService.updateTopic(topic, body.itemToStudyNext());
+        } else if (body.itemToStudyNext() != selectedTopic.getItemToStudyNext()) {
+            return topicService.updateTopic(topic, body.count(), body.itemToStudyNext());
+        } else {
+            return topicService.updateTopic(topic, body.count());
+        }
     }
 
     // POST /api/topics
@@ -44,6 +51,9 @@ public class TopicController {
         return ResponseEntity.noContent().build();
     }
 
-    record UpdateRequest(int count, String itemToStudyNext) {}
-    record AddRequest(String topic) {}
+    record UpdateRequest(int count, String itemToStudyNext) {
+    }
+
+    record AddRequest(String topic) {
+    }
 }
