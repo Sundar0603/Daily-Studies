@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS daily_studies (
     count              INT          NOT NULL DEFAULT 0,
     item_to_study_next VARCHAR(500)          DEFAULT NULL,
     last_updated_date  DATE         NOT NULL,
+    last_studied_date  DATE                  DEFAULT NULL,
     PRIMARY KEY (topic)
 );
 

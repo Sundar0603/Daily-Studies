@@ -26,6 +26,9 @@ public class Topic {
     @Column(name = "last_studied_date")
     private LocalDate lastStudiedDate;
 
+    public Topic() {
+    }
+
     public Topic(String topic) {
         this.topic = topic;
         this.count = 0;
