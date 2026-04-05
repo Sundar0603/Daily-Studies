@@ -23,7 +23,8 @@ public class Topic {
     @Column(name = "last_updated_date", nullable = false)
     private LocalDate lastUpdatedDate;
 
-    public Topic() {}
+    @Column(name = "last_studied_date")
+    private LocalDate lastStudiedDate;
 
     public Topic(String topic) {
         this.topic = topic;
@@ -31,15 +32,43 @@ public class Topic {
         this.lastUpdatedDate = LocalDate.now();
     }
 
-    public String getTopic()                        { return topic; }
-    public void   setTopic(String topic)            { this.topic = topic; }
+    public String getTopic() {
+        return topic;
+    }
 
-    public int  getCount()                          { return count; }
-    public void setCount(int count)                 { this.count = count; }
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
 
-    public String getItemToStudyNext()              { return itemToStudyNext; }
-    public void   setItemToStudyNext(String item)   { this.itemToStudyNext = item; }
+    public int getCount() {
+        return count;
+    }
 
-    public LocalDate getLastUpdatedDate()           { return lastUpdatedDate; }
-    public void      setLastUpdatedDate(LocalDate d){ this.lastUpdatedDate = d; }
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public String getItemToStudyNext() {
+        return itemToStudyNext;
+    }
+
+    public void setItemToStudyNext(String item) {
+        this.itemToStudyNext = item;
+    }
+
+    public LocalDate getLastUpdatedDate() {
+        return lastUpdatedDate;
+    }
+
+    public void setLastUpdatedDate(LocalDate d) {
+        this.lastUpdatedDate = d;
+    }
+
+    public LocalDate getLastStudiedDate() {
+        return lastStudiedDate;
+    }
+
+    public void setLastStudiedDate(LocalDate lastStudiedDate) {
+        this.lastStudiedDate = lastStudiedDate;
+    }
 }

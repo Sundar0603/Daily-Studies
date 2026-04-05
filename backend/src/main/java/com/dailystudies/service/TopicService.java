@@ -40,13 +40,13 @@ public class TopicService {
     }
 
     /**
-     * Updates count, itemToStudyNext, and lastUpdatedDate for a topic.
+     * Updates count, itemToStudyNext, and lastStudiedDate for a topic.
      */
     public Topic updateTopic(String topicName, int count, String itemToStudyNext) {
         Topic topic = topicRepository.findById(topicName)
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicName));
         topic.setCount(count);
-        topic.setLastUpdatedDate(LocalDate.now());
+        topic.setLastStudiedDate(LocalDate.now());
         topic.setItemToStudyNext(itemToStudyNext);
         return topicRepository.save(topic);
     }
@@ -55,7 +55,7 @@ public class TopicService {
         Topic topic = topicRepository.findById(topicName)
                 .orElseThrow(() -> new IllegalArgumentException("Topic not found: " + topicName));
         topic.setCount(count);
-        topic.setLastUpdatedDate(LocalDate.now());
+        topic.setLastStudiedDate(LocalDate.now());
         return topicRepository.save(topic);
     }
 
