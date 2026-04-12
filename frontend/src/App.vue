@@ -141,9 +141,9 @@ export default {
       if (!this.topics.length) return null
       return this.topics.reduce((a, b) => {
         if (a.count === b.count) {
-          return new Date(b.lastUpdatedDate).getTime() > new Date(a.lastUpdatedDate).getTime()
-            ? b
-            : a
+          return new Date(b.lastStudiedDate).getTime() > new Date(a.lastStudiedDate).getTime()
+            ? a
+            : b
         }
         return b.count > a.count ? b : a
       }).topic
